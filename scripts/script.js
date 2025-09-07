@@ -119,3 +119,93 @@ async function fetchCategories() {
   }
 }
 fetchCategories();
+
+async function fetchPlants() {
+  try {
+    showSpinner();
+    const res = await fetch("https://openapi.programming-hero.com/api/plants");
+    const data = await res.json();
+    hideSpinner();
+    if (data.status && data.plants) {
+      const container = document.getElementById("card-container");
+      container.innerHTML = "";
+
+      data.plants.forEach((plant) => {
+        container.appendChild(renderCard(plant));
+      });
+    }
+  } catch (error) {
+    hideSpinner();
+    console.error("Error fetching plants:", error);
+  }
+}
+fetchPlants();
+
+document.getElementById("close-modal").onclick = function () {
+  document.getElementById("tree-modal").classList.add("hidden");
+};
+document.getElementById("close-modal-btn").onclick = function () {
+  document.getElementById("tree-modal").classList.add("hidden");
+};
+
+function renderCard(plant) {
+  const card = document.createElement("div");
+  card.className =
+    "w-[330px] h-[400px] rounded-lg p-[16px] bg-white shadow cursor-pointer transition-transform duration-300 hover:scale-105 hover:shadow-xl";
+  card.innerHTML = `
+    <div class='flex justify-center bg-[#ededed]'>
+      <img src='${plant.image}' alt='${
+    plant.name
+  }' class='rounded-lg h-[178.8px] w-[298px]'>
+    </div>
+    <div>
+      <h2 class='card-title font-bold mb-[8px] mt-[12px] cursor-pointer'>${
+        plant.name
+      }</h2>
+      <p class='text-sm mb-[8px]'>${plant.description.substring(0, 100)}...</p>
+    </div>
+    <div class='flex justify-between mb-[12px]'>
+      <h1 class='text-[#15803d] px-4 bg-[#dcfce7] rounded-full'>${
+        plant.category
+      }</h1>
+      <h1 class='font-semibold'>৳${plant.price}</h1>
+    </div>
+    <div class='mt-2'>
+      <button class='btn bg-[#15803D] text-white rounded-full border-none w-[298px] mb-[16px] hover:bg-[#14532d] add-to-cart'>Add to Cart</button>
+    </div>
+  `;
+
+    card.querySelector(".card-title").addEventListener("click", (e) => {
+    e.stopPropagation();
+    openModal(plant.id);
+  });
+  card.querySelector(".add-to-cart").addEventListener("click", (e) => {
+    e.stopPropagation();
+    addToCart(plant);
+  });
+  return card;
+}
+
+function openModal(plantId) {
+  fetch(`https://openapi.programming-hero.com/api/plant/${plantId}`)
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.status && data.plants) {
+        const plant = data.plants;
+        document.getElementById("modal-image").src = plant.image;
+        document.getElementById("modal-name").textContent = plant.name;
+        document.getElementById("modal-description").textContent =
+          plant.description;
+        document.getElementById("modal-category").textContent = plant.category;
+        document.getElementById("modal-price").textContent = `৳${plant.price}`;
+        document.getElementById("tree-modal").classList.remove("hidden");
+      }
+    });
+}
+
+function showSpinner() {
+  document.getElementById("loading-spinner").classList.remove("hidden");
+}
+function hideSpinner() {
+  document.getElementById("loading-spinner").classList.add("hidden");
+}
